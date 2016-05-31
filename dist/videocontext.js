@@ -2154,10 +2154,15 @@ var VideoContext =
 	            if (this._element === undefined || this._ready === false) return true;
 
 	            if (this._state === STATE.playing) {
-	                (0, _utilsJs.updateTexture)(this._gl, this._texture, this._element);
+	                this._updateTexture(currentTime);
 	            }
 
 	            return true;
+	        }
+	    }, {
+	        key: "_updateTexture",
+	        value: function _updateTexture(currentTime) {
+	            (0, _utilsJs.updateTexture)(this._gl, this._texture, this._element);
 	        }
 
 	        /**
@@ -3461,6 +3466,7 @@ var VideoContext =
 	});
 	exports.ConnectException = ConnectException;
 	exports.RenderException = RenderException;
+	exports.NodeException = NodeException;
 
 	function ConnectException(message) {
 	    this.message = message;
@@ -3470,6 +3476,11 @@ var VideoContext =
 	function RenderException(message) {
 	    this.message = message;
 	    this.name = "RenderException";
+	}
+
+	function NodeException(message) {
+	    this.message = message;
+	    this.name = "NodeException";
 	}
 
 /***/ },

@@ -326,10 +326,14 @@ export default class SourceNode extends GraphNode{
         if (this._element === undefined || this._ready === false) return true;      
         
         if(this._state === STATE.playing){
-            updateTexture(this._gl, this._texture, this._element);
+            this._updateTexture(currentTime);
         }
 
         return true;
+    }
+
+    _updateTexture(currentTime) {
+        updateTexture(this._gl, this._texture, this._element);
     }
 
     /**
