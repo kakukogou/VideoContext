@@ -63,33 +63,37 @@ var VideoContext =
 
 	var _SourceNodesVideonodeJs2 = _interopRequireDefault(_SourceNodesVideonodeJs);
 
-	var _SourceNodesImagenodeJs = __webpack_require__(5);
+	var _SourceNodesOfflinevideonodeJs = __webpack_require__(5);
+
+	var _SourceNodesOfflinevideonodeJs2 = _interopRequireDefault(_SourceNodesOfflinevideonodeJs);
+
+	var _SourceNodesImagenodeJs = __webpack_require__(7);
 
 	var _SourceNodesImagenodeJs2 = _interopRequireDefault(_SourceNodesImagenodeJs);
 
-	var _SourceNodesCanvasnodeJs = __webpack_require__(6);
+	var _SourceNodesCanvasnodeJs = __webpack_require__(8);
 
 	var _SourceNodesCanvasnodeJs2 = _interopRequireDefault(_SourceNodesCanvasnodeJs);
 
 	var _SourceNodesSourcenodeJs = __webpack_require__(2);
 
-	var _ProcessingNodesCompositingnodeJs = __webpack_require__(7);
+	var _ProcessingNodesCompositingnodeJs = __webpack_require__(9);
 
 	var _ProcessingNodesCompositingnodeJs2 = _interopRequireDefault(_ProcessingNodesCompositingnodeJs);
 
-	var _DestinationNodeDestinationnodeJs = __webpack_require__(10);
+	var _DestinationNodeDestinationnodeJs = __webpack_require__(11);
 
 	var _DestinationNodeDestinationnodeJs2 = _interopRequireDefault(_DestinationNodeDestinationnodeJs);
 
-	var _ProcessingNodesEffectnodeJs = __webpack_require__(11);
+	var _ProcessingNodesEffectnodeJs = __webpack_require__(12);
 
 	var _ProcessingNodesEffectnodeJs2 = _interopRequireDefault(_ProcessingNodesEffectnodeJs);
 
-	var _ProcessingNodesTransitionnodeJs = __webpack_require__(12);
+	var _ProcessingNodesTransitionnodeJs = __webpack_require__(13);
 
 	var _ProcessingNodesTransitionnodeJs2 = _interopRequireDefault(_ProcessingNodesTransitionnodeJs);
 
-	var _rendergraphJs = __webpack_require__(13);
+	var _rendergraphJs = __webpack_require__(14);
 
 	var _rendergraphJs2 = _interopRequireDefault(_rendergraphJs);
 
@@ -416,6 +420,17 @@ var VideoContext =
 	            var videoElementAttributes = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
 
 	            var videoNode = new _SourceNodesVideonodeJs2["default"](src, this._gl, this._renderGraph, this._currentTime, this._playbackRate, sourceOffset, preloadTime, videoElementAttributes);
+	            this._sourceNodes.push(videoNode);
+	            return videoNode;
+	        }
+	    }, {
+	        key: "createOfflineVideoSourceNode",
+	        value: function createOfflineVideoSourceNode(src) {
+	            var sourceOffset = arguments.length <= 1 || arguments[1] === undefined ? 0 : arguments[1];
+	            var preloadTime = arguments.length <= 2 || arguments[2] === undefined ? 4 : arguments[2];
+	            var loop = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
+
+	            var videoNode = new _SourceNodesOfflinevideonodeJs2["default"](src, this._gl, this._renderGraph, this._currentTime, this._playbackRate, sourceOffset, preloadTime, loop);
 	            this._sourceNodes.push(videoNode);
 	            return videoNode;
 	        }
@@ -2932,6 +2947,237 @@ var VideoContext =
 /***/ function(module, exports, __webpack_require__) {
 
 	//Matthew Shotton, R&D User Experience,© BBC 2015
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+	var _get = function get(_x5, _x6, _x7) { var _again = true; _function: while (_again) { var object = _x5, property = _x6, receiver = _x7; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x5 = parent; _x6 = property; _x7 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var _sourcenode = __webpack_require__(2);
+
+	var _sourcenode2 = _interopRequireDefault(_sourcenode);
+
+	var _exceptionsJs = __webpack_require__(6);
+
+	function hasSeekToNextFrame() {
+	    return !!document.createElement("video").seekToNextFrame;
+	}
+
+	var OfflineVideoNode = (function (_SourceNode) {
+	    _inherits(OfflineVideoNode, _SourceNode);
+
+	    function OfflineVideoNode(src, gl, renderGraph, currentTime) {
+	        var globalPlaybackRate = arguments.length <= 4 || arguments[4] === undefined ? 1.0 : arguments[4];
+	        var sourceOffset = arguments.length <= 5 || arguments[5] === undefined ? 0 : arguments[5];
+	        var preloadTime = arguments.length <= 6 || arguments[6] === undefined ? 4 : arguments[6];
+	        var loop = arguments.length <= 7 || arguments[7] === undefined ? false : arguments[7];
+
+	        _classCallCheck(this, OfflineVideoNode);
+
+	        if (!hasSeekToNextFrame()) {
+	            throw new _exceptionsJs.NodeException("Your browser does not support HTMLMediaElement::seekToNextFrame() API.\
+	                                     Please download Firefox Nightly!");
+	        }
+
+	        _get(Object.getPrototypeOf(OfflineVideoNode.prototype), "constructor", this).call(this, src, gl, renderGraph, currentTime);
+	        this._preloadTime = preloadTime;
+	        this._sourceOffset = sourceOffset;
+	        this._globalPlaybackRate = globalPlaybackRate;
+	        this._playbackRate = 1.0;
+	        this._playbackRateUpdated = true;
+	        this._loopElement = loop;
+
+	        this._nextFrameTime = -1; // would be better to use a Time object.
+	        this._prevNextFrameTime = -1;
+	        this._seekToNextFramePromise = null;
+	    }
+
+	    _createClass(OfflineVideoNode, [{
+	        key: "_needToWaitForSeeking",
+	        value: function _needToWaitForSeeking() {
+	            if (this._element.seeking && !!!this._seekToNextFramePromise) {
+	                return true;
+	            }
+	            return false;
+	        }
+	    }, {
+	        key: "_load",
+	        value: function _load() {
+	            //super._load();
+	            if (this._element !== undefined) {
+	                this._element.loop = this._loopElement;
+	                if (this._element.readyState > 3 && !this._needToWaitForSeeking()) {
+	                    if (this._loopElement === false) {
+	                        if (this._stopTime === Infinity || this._stopTime == undefined) {
+	                            this._stopTime = this._startTime + this._element.duration;
+	                            this._triggerCallbacks("durationchange", this.duration);
+	                        }
+	                    }
+	                    if (this._ready !== true) this._triggerCallbacks("loaded");
+	                    this._ready = true;
+	                    this._playbackRateUpdated = true;
+	                } else {
+	                    this._ready = false;
+	                }
+	                return;
+	            }
+	            if (this._isResponsibleForElementLifeCycle) {
+	                this._element = document.createElement("video");
+	                this._element.setAttribute('crossorigin', 'anonymous');
+	                this._element.src = this._elementURL;
+	                this._element.loop = this._loopElement;
+	                this._playbackRateUpdated = true;
+	                this._triggerCallbacks("load");
+	            }
+	            // this._element.currentTime = this._sourceOffset;
+	            this._element.currentTime = this._startTime;
+	        }
+	    }, {
+	        key: "_destroy",
+	        value: function _destroy() {
+	            console.log("[OfflineVideoNode::_destroy()]");
+	            _get(Object.getPrototypeOf(OfflineVideoNode.prototype), "_destroy", this).call(this);
+	            if (this._isResponsibleForElementLifeCycle && this._element !== undefined) {
+	                this._element.src = "";
+	                this._element = undefined;
+	                delete this._element;
+	            }
+	            this._ready = false;
+	        }
+	    }, {
+	        key: "_seek",
+	        value: function _seek(time) {
+	            console.log("[OfflineVideoNode::_seek() time = ]" + time);
+	            _get(Object.getPrototypeOf(OfflineVideoNode.prototype), "_seek", this).call(this, time);
+	            if (this.state === _sourcenode.SOURCENODESTATE.playing || this.state === _sourcenode.SOURCENODESTATE.paused) {
+	                if (this._element === undefined) this._load();
+	                var relativeTime = this._currentTime - this._startTime + this._sourceOffset;
+	                this._element.currentTime = relativeTime;
+	                this._ready = false;
+	            }
+	            if ((this._state === _sourcenode.SOURCENODESTATE.sequenced || this._state === _sourcenode.SOURCENODESTATE.ended) && this._element !== undefined) {
+	                this._destroy();
+	            }
+	        }
+	    }, {
+	        key: "_update",
+	        value: function _update(currentTime) {
+	            //if (!super._update(currentTime)) return false;
+	            _get(Object.getPrototypeOf(OfflineVideoNode.prototype), "_update", this).call(this, currentTime);
+	            //check if the video has ended
+	            if (this._element !== undefined) {
+	                if (this._element.ended) {
+	                    this._state = _sourcenode.SOURCENODESTATE.ended;
+	                    this._triggerCallbacks("ended");
+	                }
+	            }
+
+	            if (this._startTime - this._currentTime < this._preloadTime && this._state !== _sourcenode.SOURCENODESTATE.waiting && this._state !== _sourcenode.SOURCENODESTATE.ended) this._load();
+
+	            if (this._state === _sourcenode.SOURCENODESTATE.playing) {
+	                if (this._playbackRateUpdated) {
+	                    this._element.playbackRate = this._globalPlaybackRate * this._playbackRate;
+	                    this._playbackRateUpdated = false;
+	                }
+	                // We do not play in the OfflineVideoNode, but we need a way to play audio......
+	                // this._element.play();
+	                return true;
+	            } else if (this._state === _sourcenode.SOURCENODESTATE.paused) {
+	                this._element.pause();
+	                return true;
+	            } else if (this._state === _sourcenode.SOURCENODESTATE.ended && this._element !== undefined) {
+	                this._element.pause();
+	                this._destroy();
+	                return false;
+	            }
+	        }
+	    }, {
+	        key: "_updateTexture",
+	        value: function _updateTexture(currentTime) {
+	            var _this = this;
+
+	            if (this._nextFrameTime == -1 || currentTime >= this._nextFrameTime) {
+	                _get(Object.getPrototypeOf(OfflineVideoNode.prototype), "_updateTexture", this).call(this, currentTime);
+	                this._nextFrameTime = -1;
+	                this._seekToNextFramePromise = this._element.seekToNextFrame();
+	                this._seekToNextFramePromise.then(function () {
+	                    // console.log("seekToNextFrame resolved.");
+	                    _this._nextFrameTime = _this._element.currentTime;
+	                    _this._seekToNextFramePromise = null;
+	                }, function () {
+	                    // console.log("seekToNextFrame failed.");
+	                    _this._seekToNextFramePromise = null;
+	                });
+	            }
+	        }
+	    }, {
+	        key: "clearTimelineState",
+	        value: function clearTimelineState() {
+	            _get(Object.getPrototypeOf(OfflineVideoNode.prototype), "clearTimelineState", this).call(this);
+	            if (this._element !== undefined) this._element.pause();
+	            this._destroy();
+	        }
+	    }, {
+	        key: "playbackRate",
+	        set: function set(playbackRate) {
+	            this._playbackRate = playbackRate;
+	            this._playbackRateUpdated = true;
+	        },
+	        get: function get() {
+	            return this._playbackRate;
+	        }
+	    }]);
+
+	    return OfflineVideoNode;
+	})(_sourcenode2["default"]);
+
+	exports["default"] = OfflineVideoNode;
+	module.exports = exports["default"];
+
+/***/ },
+/* 6 */
+/***/ function(module, exports) {
+
+	//Matthew Shotton, R&D User Experience,© BBC 2015
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.ConnectException = ConnectException;
+	exports.RenderException = RenderException;
+	exports.NodeException = NodeException;
+
+	function ConnectException(message) {
+	    this.message = message;
+	    this.name = "ConnectionException";
+	}
+
+	function RenderException(message) {
+	    this.message = message;
+	    this.name = "RenderException";
+	}
+
+	function NodeException(message) {
+	    this.message = message;
+	    this.name = "NodeException";
+	}
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	//Matthew Shotton, R&D User Experience,© BBC 2015
 	'use strict';
 
 	Object.defineProperty(exports, '__esModule', {
@@ -3034,7 +3280,7 @@ var VideoContext =
 	module.exports = exports['default'];
 
 /***/ },
-/* 6 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//Matthew Shotton, R&D User Experience,© BBC 2015
@@ -3120,7 +3366,7 @@ var VideoContext =
 	module.exports = exports["default"];
 
 /***/ },
-/* 7 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//Matthew Shotton, R&D User Experience,© BBC 2015
@@ -3140,7 +3386,7 @@ var VideoContext =
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var _processingnode = __webpack_require__(8);
+	var _processingnode = __webpack_require__(10);
 
 	var _processingnode2 = _interopRequireDefault(_processingnode);
 
@@ -3225,7 +3471,7 @@ var VideoContext =
 	module.exports = exports["default"];
 
 /***/ },
-/* 8 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//Matthew Shotton, R&D User Experience,© BBC 2015
@@ -3251,7 +3497,7 @@ var VideoContext =
 
 	var _utilsJs = __webpack_require__(3);
 
-	var _exceptionsJs = __webpack_require__(9);
+	var _exceptionsJs = __webpack_require__(6);
 
 	var ProcessingNode = (function (_GraphNode) {
 	    _inherits(ProcessingNode, _GraphNode);
@@ -3455,36 +3701,7 @@ var VideoContext =
 	module.exports = exports["default"];
 
 /***/ },
-/* 9 */
-/***/ function(module, exports) {
-
-	//Matthew Shotton, R&D User Experience,© BBC 2015
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	exports.ConnectException = ConnectException;
-	exports.RenderException = RenderException;
-	exports.NodeException = NodeException;
-
-	function ConnectException(message) {
-	    this.message = message;
-	    this.name = "ConnectionException";
-	}
-
-	function RenderException(message) {
-	    this.message = message;
-	    this.name = "RenderException";
-	}
-
-	function NodeException(message) {
-	    this.message = message;
-	    this.name = "NodeException";
-	}
-
-/***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//Matthew Shotton, R&D User Experience,© BBC 2015
@@ -3508,7 +3725,7 @@ var VideoContext =
 
 	//import GraphNode from "../graphnode";
 
-	var _ProcessingNodesProcessingnode = __webpack_require__(8);
+	var _ProcessingNodesProcessingnode = __webpack_require__(10);
 
 	var _ProcessingNodesProcessingnode2 = _interopRequireDefault(_ProcessingNodesProcessingnode);
 
@@ -3609,7 +3826,7 @@ var VideoContext =
 	module.exports = exports["default"];
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//Matthew Shotton, R&D User Experience,© BBC 2015
@@ -3629,7 +3846,7 @@ var VideoContext =
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var _processingnode = __webpack_require__(8);
+	var _processingnode = __webpack_require__(10);
 
 	var _processingnode2 = _interopRequireDefault(_processingnode);
 
@@ -3693,7 +3910,7 @@ var VideoContext =
 	module.exports = exports["default"];
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//Matthew Shotton, R&D User Experience,© BBC 2015
@@ -3713,7 +3930,7 @@ var VideoContext =
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var _effectnode = __webpack_require__(11);
+	var _effectnode = __webpack_require__(12);
 
 	var _effectnode2 = _interopRequireDefault(_effectnode);
 
@@ -3854,7 +4071,7 @@ var VideoContext =
 	module.exports = exports["default"];
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//Matthew Shotton, R&D User Experience,© BBC 2015
@@ -3868,7 +4085,7 @@ var VideoContext =
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var _exceptionsJs = __webpack_require__(9);
+	var _exceptionsJs = __webpack_require__(6);
 
 	var RenderGraph = (function () {
 	    function RenderGraph() {

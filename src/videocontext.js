@@ -1,6 +1,7 @@
 //Matthew Shotton, R&D User Experience,© BBC 2015
 
 import VideoNode from "./SourceNodes/videonode.js";
+import OfflineVideoNode from "./SourceNodes/offlinevideonode.js";
 import ImageNode from "./SourceNodes/imagenode.js";
 import CanvasNode from "./SourceNodes/canvasnode.js";
 import { SOURCENODESTATE } from "./SourceNodes/sourcenode.js";
@@ -372,6 +373,12 @@ export default class VideoContext{
     */
     createVideoSourceNode(src, sourceOffset=0, preloadTime=4, videoElementAttributes={}){
         let videoNode = new VideoNode(src, this._gl, this._renderGraph, this._currentTime, this._playbackRate, sourceOffset, preloadTime, videoElementAttributes);
+        this._sourceNodes.push(videoNode);
+        return videoNode;
+    }
+
+    createOfflineVideoSourceNode(src, sourceOffset=0, preloadTime=4, loop=false){
+        let videoNode = new OfflineVideoNode(src, this._gl, this._renderGraph, this._currentTime, this._playbackRate, sourceOffset, preloadTime, loop);
         this._sourceNodes.push(videoNode);
         return videoNode;
     }

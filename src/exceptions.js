@@ -8,3 +8,8 @@ export function RenderException(message){
     this.message = message;
     this.name = "RenderException";
 }
+
+export function NodeException(message) {
+    this.message = message;
+    this.name = "NodeException";
+}
