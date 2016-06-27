@@ -1759,6 +1759,14 @@ var VideoContext =
 	                return false;
 	            }
 	        }
+
+	        // override just for statistics.
+	    }, {
+	        key: "_updateTexture",
+	        value: function _updateTexture(currentTime) {
+	            _get(Object.getPrototypeOf(VideoNode.prototype), "_incrementUpdateTextureCallCount", this).call(this);
+	            _get(Object.getPrototypeOf(VideoNode.prototype), "_updateTexture", this).call(this, currentTime);
+	        }
 	    }, {
 	        key: "clearTimelineState",
 	        value: function clearTimelineState() {
@@ -1839,6 +1847,10 @@ var VideoContext =
 	        this._texture = (0, _utilsJs.createElementTexutre)(gl);
 	        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 0]));
 	        this._callbacks = [];
+
+	        // For statistics
+	        this._updateTextureCallCount = 0;
+	        this._updateGPUCount = 0;
 	    }
 
 	    /**
@@ -2177,6 +2189,7 @@ var VideoContext =
 	    }, {
 	        key: "_updateTexture",
 	        value: function _updateTexture(currentTime) {
+	            this._incrementUpdateGPUCallCount();
 	            (0, _utilsJs.updateTexture)(this._gl, this._texture, this._element);
 	        }
 
@@ -2189,6 +2202,16 @@ var VideoContext =
 	            this._startTime = NaN;
 	            this._stopTime = Infinity;
 	            this._state = STATE.waiting;
+	        }
+	    }, {
+	        key: "_incrementUpdateTextureCallCount",
+	        value: function _incrementUpdateTextureCallCount() {
+	            this._updateTextureCallCount += 1;
+	        }
+	    }, {
+	        key: "_incrementUpdateGPUCallCount",
+	        value: function _incrementUpdateGPUCallCount() {
+	            this._updateGPUCount += 1;
 	        }
 	    }, {
 	        key: "state",
@@ -2247,6 +2270,11 @@ var VideoContext =
 	            if (isNaN(this._startTime)) return undefined;
 	            if (this._stopTime === Infinity) return Infinity;
 	            return this._stopTime - this._startTime;
+	        }
+	    }, {
+	        key: "updateGPURate",
+	        get: function get() {
+	            return 100 * this._updateGPUCount / this._updateTextureCallCount;
 	        }
 	    }]);
 
@@ -3106,7 +3134,14 @@ var VideoContext =
 	        value: function _updateTexture(currentTime) {
 	            var _this = this;
 
+	            _get(Object.getPrototypeOf(OfflineVideoNode.prototype), "_incrementUpdateTextureCallCount", this).call(this);
 	            if (this._nextFrameTime == -1 || currentTime >= this._nextFrameTime) {
+
+	                if (!!this._seekToNextFramePromise) {
+	                    // still seeking...
+	                    return;
+	                }
+
 	                _get(Object.getPrototypeOf(OfflineVideoNode.prototype), "_updateTexture", this).call(this, currentTime);
 	                this._nextFrameTime = -1;
 	                this._seekToNextFramePromise = this._element.seekToNextFrame();

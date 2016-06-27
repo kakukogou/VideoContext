@@ -27,6 +27,10 @@ export default class SourceNode extends GraphNode{
         this._texture = createElementTexutre(gl);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0,0,0,0]));
         this._callbacks = [];
+
+        // For statistics
+        this._updateTextureCallCount = 0;
+        this._updateGPUCount = 0;
     }
 
     /**
@@ -333,6 +337,7 @@ export default class SourceNode extends GraphNode{
     }
 
     _updateTexture(currentTime) {
+        this._incrementUpdateGPUCallCount();
         updateTexture(this._gl, this._texture, this._element);
     }
 
@@ -343,6 +348,18 @@ export default class SourceNode extends GraphNode{
         this._startTime = NaN;
         this._stopTime = Infinity;
         this._state = STATE.waiting;
+    }
+
+    _incrementUpdateTextureCallCount() {
+      this._updateTextureCallCount += 1;
+    }
+
+    _incrementUpdateGPUCallCount() {
+      this._updateGPUCount += 1;
+    }
+
+    get updateGPURate() {
+      return 100 * this._updateGPUCount / this._updateTextureCallCount;
     }
 }
 

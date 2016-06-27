@@ -119,6 +119,12 @@ export default class VideoNode extends SourceNode {
         }
     }
 
+    // override just for statistics.
+    _updateTexture(currentTime) {
+        super._incrementUpdateTextureCallCount();
+        super._updateTexture(currentTime);
+    }
+
     clearTimelineState(){
         super.clearTimelineState();
         if (this._element !== undefined) this._element.pause();

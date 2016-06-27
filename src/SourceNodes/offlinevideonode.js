@@ -134,6 +134,7 @@ export default class OfflineVideoNode extends SourceNode {
     }
 
     _updateTexture(currentTime) {
+        super._incrementUpdateTextureCallCount();
         if (this._nextFrameTime == -1 || currentTime >= this._nextFrameTime) {
 
             if (!!this._seekToNextFramePromise) {

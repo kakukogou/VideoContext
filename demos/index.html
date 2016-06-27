@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <script type="text/javascript" src="../dist/videocontext.js"></script>
+</head>
+<body>
+    <div>
+      <p><b>Playback via normal VideoSourceNode:</b></p>
+      <p>
+        <label>GPU update rate:</label>
+        <label id="information1">NAN</label>
+      </p>
+      <canvas id="canvas1"></canvas>
+      <p>
+        <canvas id="visualisation-canvas" width="390", height="20"></canvas>
+      </p>
+      <p>
+        <canvas id="graph-canvas" width="480", height="150"></canvas>
+      </p>
+    </div>
+    <div>
+      <p><b>Playback via OfflineVideoSourceNode:</b></p>
+      <p>
+        <label>GPU update rate:</label>
+        <label id="information2">NAN</label>
+      </p>
+      <canvas id="canvas2"></canvas>
+    </div>
+    <div>
+      <p>
+        <button id="play-button">Play</button>
+        <button id="pause-button">Pause</button>
+      </p>
+    </div>
+
+    <script type="text/javascript">
+        window.onload = function(){
+
+            const sourceURL = "./firefoxTestPilot.webm";
+
+            // Setup playback via noremal VideoSourceNode.
+            var canvas1 = document.getElementById("canvas1");
+            var videoCtx1 = new VideoContext(canvas1);
+            var videoNode1 = videoCtx1.createVideoSourceNode(sourceURL);
+            videoNode1.start(0);
+            videoNode1.start(60);
+            videoNode1.connect(videoCtx1.destination);
+
+
+            // Setup playback via OfflineVideoSourceNode.
+            var canvas2 = document.getElementById("canvas2");
+            var videoCtx2 = new VideoContext(canvas2);
+            var videoNode2 = videoCtx2.createOfflineVideoSourceNode(sourceURL);
+            videoNode2.start(0);
+            videoNode1.start(60);
+            videoNode2.connect(videoCtx2.destination);
+
+
+            //Render a graph view
+            var graphCanvas = document.getElementById("graph-canvas");
+            VideoContext.visualiseVideoContextGraph(videoCtx1, graphCanvas);
+
+
+            //Setup up a render function so we can update the playhead position.
+            var visualisationCanvas = document.getElementById("visualisation-canvas");
+            var information1 = document.getElementById("information1");
+            var information2 = document.getElementById("information2");
+            var count = 0;
+            function render () {
+                //VideoCompositor.renderPlaylist(playlist, visualisationCanvas, videoCompositor.currentTime);
+                VideoContext.visualiseVideoContextTimeline(videoCtx1, visualisationCanvas, videoCtx1.currentTime);
+                if (++count % 90 == 1) {
+                    information1.innerHTML = videoNode1.updateGPURate + "%";
+                    information2.innerHTML = videoNode2.updateGPURate + "%";
+                }
+                requestAnimationFrame(render);
+            }
+            requestAnimationFrame(render);
+
+
+            // Setup mouse events.
+            var playButton = document.getElementById("play-button");
+            var pauseButton = document.getElementById("pause-button");
+            playButton.onclick = function(){
+                videoCtx1.play();
+                videoCtx2.play();
+            };
+            pauseButton.onclick = function(){
+                videoCtx1.pause();
+                videoCtx2.pause();
+            };
+        };
+    </script>
+</body>
+</html>
